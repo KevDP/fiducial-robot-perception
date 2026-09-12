@@ -1,0 +1,33 @@
+# --- Data & model artifacts (never committed) ---
+data/*
+!data/README.md
+models/*
+!models/.gitkeep
+
+# --- experiments/ is versioned on purpose ---
+# The sealed split, the holdout access log and every experiment record are part
+# of the result, not build output. They are what makes a reported number checkable.
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+
+# --- Notebooks ---
+.ipynb_checkpoints/
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
