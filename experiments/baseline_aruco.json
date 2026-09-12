@@ -1,0 +1,308 @@
+{
+  "method": "cv2.aruco (default parameters)",
+  "partition": "train",
+  "holdout_access_number": null,
+  "manifest_fingerprint": "bf9eca696267b0dbe12c64035a0f86a2b098c73bf88df7dd8533f86095e0b249",
+  "conditions": [
+    {
+      "axis": "backlight",
+      "level": 0.25,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "backlight",
+      "level": 0.5,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "backlight",
+      "level": 0.75,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "backlight",
+      "level": 1.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.14487116071912978
+    },
+    {
+      "axis": "clean",
+      "level": 0.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "hard_shadow",
+      "level": 0.1,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "hard_shadow",
+      "level": 0.3,
+      "n": 45,
+      "hits": 6,
+      "recall": 0.13333333333333333,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "hard_shadow",
+      "level": 0.5,
+      "n": 45,
+      "hits": 2,
+      "recall": 0.044444444444444446,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "hard_shadow",
+      "level": 0.7,
+      "n": 45,
+      "hits": 28,
+      "recall": 0.6222222222222222,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.27893749305180143
+    },
+    {
+      "axis": "hard_shadow",
+      "level": 0.9,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "low_light",
+      "level": 0.2,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "low_light",
+      "level": 0.4,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "low_light",
+      "level": 0.6,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "low_light",
+      "level": 0.8,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.21071099705166288
+    },
+    {
+      "axis": "motion_blur",
+      "level": 3.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.6188720477951898
+    },
+    {
+      "axis": "motion_blur",
+      "level": 7.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 2.534783771302965
+    },
+    {
+      "axis": "motion_blur",
+      "level": 11.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 3.6607798894246417
+    },
+    {
+      "axis": "motion_blur",
+      "level": 15.0,
+      "n": 45,
+      "hits": 18,
+      "recall": 0.4,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 4.756145079930623
+    },
+    {
+      "axis": "occlusion",
+      "level": 0.1,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "occlusion",
+      "level": 0.2,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "occlusion",
+      "level": 0.3,
+      "n": 45,
+      "hits": 3,
+      "recall": 0.06666666666666667,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "occlusion",
+      "level": 0.4,
+      "n": 45,
+      "hits": 0,
+      "recall": 0.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": null
+    },
+    {
+      "axis": "occlusion",
+      "level": 0.5,
+      "n": 45,
+      "hits": 0,
+      "recall": 0.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": null
+    },
+    {
+      "axis": "viewpoint",
+      "level": 15.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.3547333856423696
+    },
+    {
+      "axis": "viewpoint",
+      "level": 30.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.3303433593776491
+    },
+    {
+      "axis": "viewpoint",
+      "level": 45.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.26247333851125504
+    },
+    {
+      "axis": "viewpoint",
+      "level": 60.0,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.2787471016248067
+    },
+    {
+      "axis": "warm_tint",
+      "level": 0.3,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "warm_tint",
+      "level": 0.6,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    },
+    {
+      "axis": "warm_tint",
+      "level": 0.9,
+      "n": 45,
+      "hits": 45,
+      "recall": 1.0,
+      "wrong_id": 0,
+      "wrong_id_rate": 0.0,
+      "mean_corner_rmse": 0.0
+    }
+  ]
+}
