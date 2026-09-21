@@ -24,7 +24,18 @@ IMAGE_HEIGHT = 480
 
 ARUCO_DICT_NAME = "DICT_4X4_50"
 
-# Marker side length in pixels at the reference distance, before any viewpoint warp. Roughly a 15 cm marker seen from 2 m with a 60 degree horizontal FOV.
+# Marker side length in pixels at the reference distance, before any viewpoint warp.
+#
+# Expressed as a framing rule rather than a distance, because a distance is only true
+# for one lens. The marker spans 15% of the frame width, so the scene visible at the
+# marker's plane is 6.67 times the marker side: a 15 cm marker needs a 1.0 m wide
+# field, which sits about 0.87 m away on a 60 degree horizontal FOV camera and
+# somewhere else on any other one.
+#
+# This note previously read "15 cm seen from 2 m with a 60 degree horizontal FOV".
+# Those numbers are not compatible: at 2 m that marker spans 42 px, not 96. Shooting
+# real footage there would run the detector at half the resolution the sweep renders
+# at, and the loss would read as the generator being optimistic.
 
 MARKER_SIDE_PX = 96
 
@@ -37,7 +48,7 @@ MARKER_SIDE_PX = 96
 # A "Level 0.0" always means "no degradation on this axis", so every axis shares a common origin and the curves are comparable.
 
 OCCLUSION_LEVELS = (0.0, 0.10, 0.20, 0.30, 0.40, 0.50)
-"""Fraction of the marker area covered by an opaque object (a person, a tray)."""
+"""Fraction of the marker area covered by an opaque object (a person, a carried object)."""
 
 LOW_LIGHT_LEVELS = (0.0, 0.2, 0.4, 0.6, 0.8)
 """Severity of dim ambient light. Also raises sensor noise, as a real camera would."""

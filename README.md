@@ -1,28 +1,28 @@
 # fiducial-robot-perception
 
 Fiducial markers are the cheapest way to give an indoor mobile robot reliable landmarks,
-but classical detection fails quietly in the conditions those robot actually operate in.
-Robotics have an interesting situation between real world and simulated data results.
-This project measures the case and where it can be challenguing to provide solutions. 
+but classical detection fails quietly in the conditions those robots actually operate in.
+Robotics sits in an interesting gap between real world results and simulated ones.
+This project measures where that gap is, and where it becomes challenging to close. 
 
 ## The problem
 
 Deploying a mobile robot into an indoor space requires a complex checklist: building a map,
-defining destinations, calibrating, whether area to really improve between hw or sw. 
+defining destinations, calibrating, and deciding whether the area to improve is hardware or software. 
 
-Using printed fiducial markers attack that cost directly, solving localization with a printer.
+Printed fiducial markers attack that cost directly, solving localization with a printer.
 The catch is that marker detection is not the solved problem it looks like. `cv2.aruco.detectMarkers`
 is a deterministic algorithm with no trained weights, and it works beautifully on a clean,
-frontal, well-lit marker. Real world deployments are none quite of this performance: people stand in front of markers, ambient light is dim and warm, windows blow out one side of the frame, and the robot
+frontal, well-lit marker. Real deployments are nothing like that: people stand in front of markers, ambient light is dim and warm, windows blow out one side of the frame, and the robot
 sees markers off-axis.
 
-So the real question it is:
+So the real question is:
 
 1. Under which conditions, and at what severity, does classical detection stop working, and is that gap large enough to justify a learned component at all?
 
-Phase 0 is approaching all the trade-offs and setting conditions. Previous question has a measurable answer,
-If the classical detector holds up across the whole sweep, there is no learned component worth building 
-and this project will change shape and objective.
+Phase 0 approaches those trade-offs and sets the conditions. The question has a measurable answer:
+if the classical detector holds up across the whole sweep, there is no learned component worth building 
+and this project changes shape and objective.
 
 ## Results at a glance
 
@@ -68,12 +68,12 @@ and perspective up to 60 degrees do not move recall at all, so there is no case 
 | Layer | Role | Status |
 | --- | --- | --- |
 | Classical | `cv2.aruco`, default parameters, as the baseline to beat | phase 0 |
-| Learned | small detector expected to recover the results that classical measure losses | phase 1 |
+| Learned | small detector to recover what the classical one loses | phase 1 |
 | State | Kalman filter holding pose through lost detections | phase 2 |
 
 The state layer comes from [kalman-filter-tracker](https://github.com/KevDP/kalman-filter-tracker),
 where it was already validated on synthetic and real video. This matters because it decouples the detector's
-frame rate, so perception can run at a few frames per second and still publish smooth pose.
+frame rate from the control loop, so perception can run at a few frames per second and still publish smooth pose.
 This explains why it keeps a small CPU-only model viable on embedded hardware.
 
 ## Key technical decisions
@@ -96,21 +96,22 @@ Regenerating the dataset invalidates it instead of silently reusing it. Evaluati
 
 **Low light adds sensor noise.**
 Scaling brightness down is recoverable by any contrast normalization. A real camera raises gain in a dim
-room, and the noise that comes with it is what actually needs to be approached with real solutions.
+room, and the noise that comes with it is the part that actually needs solving.
 
 ## Limitations
 
-- **A flat curve is ambiguous.** The results are unconsistent with ArUco regarding the challenguing way to
-  handle global photometric change, is expected that synthetic dim-light conditions did not break it.
-- **The degradations are synthetic.** Degradations only can approximate real failure modes. A real occlusion 
-  has texture and a real dim frame has sensor-specific noise. This requires a validation work step.
+- **A flat curve is ambiguous.** Dim light not breaking anything is consistent with ArUco being robust, and equally
+  consistent with the synthetic degradation being too gentle. The two cannot be separated
+  without real footage.
+- **The degradations are synthetic.** Degradations can only approximate real failure modes. A real occlusion 
+  has texture and a real dim frame has sensor-specific noise. This needs a validation step against real footage.
 - **Backgrounds are not photographic.** In real clutter there are contours that this generator does not reproduce.
-- **One marker per frame.** At least in phase 0, a multi-marker scene are out of scope.
+- **One marker per frame.** At least in phase 0, multi-marker scenes are out of scope.
 
 ## Quickstart
 
 ```bash
-python3.12 -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate   # .venv/Scripts/activate on Windows
 pip install -e ".[dev]"
 ```
 
@@ -148,7 +149,7 @@ src/fiducial/
     degrade.py        The seven degradation axes, one function each
     imagestats.py     Objective per-sample statistics recorded in the manifest
     dataset.py        Generation and manifest handling
-    detect.py         Classical ArUco baseline
+    detect.py         The classical ArUco detector
     metrics.py        Recall, wrong-id rate and corner RMSE, per condition
     splits.py         Sequence-level split, sealing, and the holdout access log
     generate.py       Entry point: build the dataset and seal the split
@@ -157,4 +158,5 @@ src/fiducial/
 tests/                One test_<module>.py per module, written as invariant guards
 experiments/          Sealed split, access log and experiment records
 data/                 Generated images and manifests
+markers/              Printable marker sheets for the real-footage check
 ```

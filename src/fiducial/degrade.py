@@ -15,7 +15,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-# A person or a tray in front of a marker reads as a dark, low-texture blob.
+# A person or a carried object in front of a marker reads as a dark, low-texture blob.
 OCCLUDER_GRAY = 55
 
 
@@ -31,7 +31,7 @@ def occlude(
     """Cover `level` of the marker area with an opaque object.
 
     The occluder enters from one of the four edges, chosen by `rng`, which is how
-    a person walking past or a tray held in front actually clips a marker.
+    a person walking past or a carried object held in front actually clips a marker.
 
     Args:
         image: BGR scene.
