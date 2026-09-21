@@ -13,6 +13,14 @@ everyone prints the same files.
 One marker and its id per sheet. Nothing else is printed, because the page is in frame
 in every photograph taken with it.
 
+Two formats per marker. **Print the `.docx`**: it pins the physical size in the document
+itself, in EMUs, so the result does not depend on a viewer guessing a DPI. A PNG with no
+DPI metadata is assumed to be 96 dpi, which would print these at 79 cm. The `.png` is the
+same sheet as a plain image, for anything other than printing.
+
+The image in the `.docx` measures 187.5 mm because it carries its quiet zone. The black
+square inside it is the 150 mm.
+
 The quiet zone is the `side / 8` ratio `scene.render` pads by. Cutting flush to the
 black border measures a failure mode the sweep never generated.
 
