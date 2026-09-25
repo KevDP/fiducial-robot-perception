@@ -38,10 +38,14 @@ Classical `cv2.aruco` with default parameters:
 | Warm tint | never breaks | 100% |
 | Off-axis viewpoint | never breaks (60 deg) | 100% |
 
+These are simulator numbers. The occlusion row shows different results against real photographs.
+See [Checked against real footage](#checked-against-real-footage).
+
 ## Important findings:
 
 **1. Occlusion has a cliff:** Recall is 100% at 20% coverage and 6.7% at 30%.
-With this scale, there is no gradual band to lean on.
+With this scale, there is no gradual band to lean on. Real photographs put that cliff far
+lower, between 1.6% and 5%, for the reasons in the next section.
 
 **2. Shadow difficulty is not monotonic.** Recall by edge position across the marker: 
 
@@ -62,6 +66,35 @@ is needed. Wrong-id rate was 0.0% in every cell.
 **Result:** Global photometric conditions (dim light with sensor noise, backlight, warm tint) 
 and perspective up to 60 degrees do not move recall at all, so there is no case for building 
 "general robustness". The targets of the learned layer are partial occlusion and strong local gradients.
+
+## Checked against real footage
+
+Phase 0 measures a simulator, so the number that decides anything is whether the simulator resembles a room.
+Thirty photographs of printed markers under real occlusion, taken 2026-09-23, say it does not on this axis.
+The record is `experiments/real_occlusion_2026-09-23.csv`.
+
+| Coverage | Real recall (n) | Sweep |
+| --- | ---: | ---: |
+| 0% | 100% (8) | 100% |
+| 0 to 5% | 100% (1) | 100% |
+| 5 to 10% | **0%** (5) | 100% |
+| 10 to 20% | 0% (7) | 100% |
+| 20 to 40% | 0% (6) | 13% at 30% |
+
+The real cliff sits between 1.6% and 5% coverage. The sweep measured a condition that does not happen with a real print.
+
+Two generator assumptions cause the gap, and neither does anything on its own:
+
+**1. The occluder is clipped to the marker box.** A real object covers the marker, the white frame around it, and keeps going.
+
+**2. Ink and paper are rendered at 0 and 255.** A real print measures about 57 and 170 under real room light. 
+  The occluder used here measures 55, so object and ink are the same shade to the detector.
+
+The result was interesting: with a real print, a mid or light occluder holds to 10% coverage where a dark one fails at 5%. 
+The tone of the object matters as much as how much of the marker it hides.
+
+A pure black occluder also collapses, although its tone sits as far from the ink as a mid-dark one that does not.
+The merge-with-the-ink account does not cover that case and nothing better has been tested.
 
 ## Architecture
 
@@ -104,7 +137,8 @@ room, and the noise that comes with it is the part that actually needs solving.
   consistent with the synthetic degradation being too gentle. The two cannot be separated
   without real footage.
 - **The degradations are synthetic.** Degradations can only approximate real failure modes. A real occlusion 
-  has texture and a real dim frame has sensor-specific noise. This needs a validation step against real footage.
+  has texture and a real dim frame has sensor-specific noise. The occlusion axis has now been
+  checked against real footage and did not hold. The photometric axes have not been checked.
 - **Backgrounds are not photographic.** In real clutter there are contours that this generator does not reproduce.
 - **One marker per frame.** At least in phase 0, multi-marker scenes are out of scope.
 
