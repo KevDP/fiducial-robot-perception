@@ -89,7 +89,7 @@ The clean sample and the undegraded end of each curve are then bit-identical by 
 Every degraded sample derived from one scene shares its background, placement and marker id. Splitting at the sample level puts near-duplicates on both sides and inflates every downstream number. See `tests/test_splits.py`.
 
 **The dataset is reproducible, so the seal is auditable without the images.**
-By running `python -m fiducial.generate --seed 0` it is possible to check that the manifest fingerprint matches the committed seal. This only holds because generation is deterministic across processes.
+Running `python -m fiducial.generate --seed 0` checks that the manifest fingerprint matches the committed seal. The fingerprint covers what the seed decides: the scene parameters and the split.
 
 **The holdout is sealed and every access is logged.**
 `experiments/split.sealed.json` is fingerprinted against the manifest it was computed from. 

@@ -45,6 +45,7 @@ class Split:
     manifest_fingerprint: str
     seed: int
 
+
 UNFINGERPRINTED_SAMPLE_FIELDS = frozenset({"stats"})
 
 
