@@ -64,6 +64,60 @@ def test_load_detects_dataset_drift(tmp_path):
         splits.load_sealed(tmp_path, manifest)
 
 
+def _manifest(tmp_path, name, *, corners, stats):
+    path = tmp_path / name
+    path.write_text(
+        json.dumps(
+            {
+                "seed": 0,
+                "aruco_dict": "DICT_4X4_50",
+                "samples": [
+                    {
+                        "sample_id": "seq000_clean",
+                        "sequence_id": "seq000",
+                        "marker_id": 42,
+                        "axis": "clean",
+                        "level": 0.0,
+                        "corners": corners,
+                        "appearance": {"ink_low": 70, "paper_low": 158},
+                        "occluder_gray": None,
+                        "stats": stats,
+                    }
+                ],
+            }
+        )
+    )
+    return path
+
+
+def test_fingerprint_ignores_the_image_statistics(tmp_path):
+    """The seal asks whether the dataset changed, not what the pixels measured."""
+    here = _manifest(tmp_path, "a.json", corners=[[1, 2]], stats={"mean_luminance": 126.02})
+    there = _manifest(tmp_path, "b.json", corners=[[1, 2]], stats={"mean_luminance": 126.03})
+    assert splits.fingerprint(here) == splits.fingerprint(there)
+
+
+def test_fingerprint_still_catches_a_changed_scene(tmp_path):
+    """Dropping the statistics must not make the seal blind to a real change."""
+    before = _manifest(tmp_path, "a.json", corners=[[1, 2]], stats={"mean_luminance": 1.0})
+    after = _manifest(tmp_path, "b.json", corners=[[9, 9]], stats={"mean_luminance": 1.0})
+    assert splits.fingerprint(before) != splits.fingerprint(after)
+
+
+def test_fingerprint_reads_corners_as_pixel_positions(tmp_path):
+    """Float detail below a pixel says nothing about whether the dataset changed."""
+    here = _manifest(tmp_path, "a.json", corners=[[375.0, 141.86076354]], stats={})
+    there = _manifest(tmp_path, "b.json", corners=[[375.0, 141.86076355]], stats={})
+    assert splits.fingerprint(here) == splits.fingerprint(there)
+
+
+def test_fingerprint_catches_a_corner_that_moved_for_real(tmp_path):
+    """Reading corners as pixels must not swallow a scene that is different."""
+    here = _manifest(tmp_path, "a.json", corners=[[375.0, 141.0]], stats={})
+    there = _manifest(tmp_path, "b.json", corners=[[375.0, 148.0]], stats={})
+    assert splits.fingerprint(here) != splits.fingerprint(there)
+
+
 def test_holdout_access_is_counted(tmp_path):
     """The count is what tells a reader whether a holdout number is still honest."""
     assert splits.record_holdout_access(tmp_path, "first look") == 1

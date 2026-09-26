@@ -33,9 +33,10 @@ class Split:
     Attributes:
         train: Sequence ids available for development and model selection.
         holdout: Sequence ids reserved for the final, one-shot evaluation.
-        manifest_fingerprint: SHA-256 of the manifest this split was computed from.
-        If the dataset is regenerated, the fingerprint stops matching
-        and the split must be re-sealed rather than silently reused.
+        manifest_fingerprint: SHA-256 of the reproducible part of the manifest
+        this split was computed from. If the dataset is regenerated, the
+        fingerprint stops matching and the split must be re-sealed rather than
+        silently reused. See `fingerprint` for what reproducible means here.
         seed: Seed used to shuffle sequences.
     """
 
@@ -44,10 +45,38 @@ class Split:
     manifest_fingerprint: str
     seed: int
 
+UNFINGERPRINTED_SAMPLE_FIELDS = frozenset({"stats"})
+
+
+def _as_pixels(corners: list[list[float]]) -> list[list[int]]:
+    """Corner coordinates as the pixel positions they are."""
+    return [[round(value) for value in corner] for corner in corners]
+
 
 def fingerprint(manifest_path: Path) -> str:
-    """SHA-256 of a manifest file, used to detect dataset drift."""
-    return hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    """SHA-256 of what the seed decides in a manifest, used to detect dataset drift.
+
+    Corners are hashed as pixel positions. Carrying their full float precision
+    would tie the seal to floating point detail that says nothing about whether
+    the dataset changed, and a change that matters moves a corner whole pixels.
+
+    Args:
+        manifest_path: Manifest written by `dataset.generate`.
+
+    Returns the hex digest over that content.
+    """
+    manifest = json.loads(manifest_path.read_text())
+    payload = {key: value for key, value in manifest.items() if key != "samples"}
+    payload["samples"] = [
+        {
+            key: _as_pixels(value) if key == "corners" else value
+            for key, value in record.items()
+            if key not in UNFINGERPRINTED_SAMPLE_FIELDS
+        }
+        for record in manifest.get("samples", [])
+    ]
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def make_split(
