@@ -13,11 +13,14 @@ import numpy as np
 
 @dataclass
 class ConditionResult:
-    """Aggregated outcome for one (axis, level) cell of the sweep.
+    """Aggregated outcome for one cell of the sweep.
+
+    A cell is an (axis, level) pair everywhere except occlusion, where the tone of the occluding object splits it further.
 
     Attributes:
         axis: Degradation axis name.
         level: Level along that axis.
+        occluder_gray: Tone of the occluding object, on the occlusion axis only.
         n: Number of samples in this cell.
         hits: Samples where the correct marker id was detected.
         wrong_id: Samples where some other id was reported.
@@ -26,6 +29,7 @@ class ConditionResult:
 
     axis: str
     level: float
+    occluder_gray: int | None = None
     n: int = 0
     hits: int = 0
     wrong_id: int = 0
@@ -51,6 +55,7 @@ class ConditionResult:
         return {
             "axis": self.axis,
             "level": self.level,
+            "occluder_gray": self.occluder_gray,
             "n": self.n,
             "hits": self.hits,
             "recall": self.recall,
@@ -83,7 +88,7 @@ class Aggregator:
     """Accumulates per-sample outcomes into per-condition results."""
 
     def __init__(self) -> None:
-        self._cells: dict[tuple[str, float], ConditionResult] = {}
+        self._cells: dict[tuple[str, float, int | None], ConditionResult] = {}
 
     def add(
         self,
@@ -92,6 +97,7 @@ class Aggregator:
         hit: bool,
         wrong_id: bool,
         corner_error: float | None = None,
+        occluder_gray: int | None = None,
     ) -> None:
         """Record one sample's outcome.
 
@@ -101,8 +107,14 @@ class Aggregator:
             hit: Whether the correct marker id was detected.
             wrong_id: Whether a different id was reported.
             corner_error: Corner RMSE, when there was a hit.
+            occluder_gray: Tone of the occluding object, on the occlusion axis.
+                Pooling the tones into one cell would report the mean of a tone
+                that survives and a tone that does not.
         """
-        cell = self._cells.setdefault((axis, level), ConditionResult(axis=axis, level=level))
+        key = (axis, level, occluder_gray)
+        cell = self._cells.setdefault(
+            key, ConditionResult(axis=axis, level=level, occluder_gray=occluder_gray)
+        )
         cell.n += 1
         if hit:
             cell.hits += 1
@@ -112,8 +124,11 @@ class Aggregator:
             cell.wrong_id += 1
 
     def results(self) -> list[ConditionResult]:
-        """Every cell, sorted by axis then level."""
-        return sorted(self._cells.values(), key=lambda c: (c.axis, c.level))
+        """Every cell, sorted by axis, then level, then occluder tone."""
+        return sorted(
+            self._cells.values(),
+            key=lambda c: (c.axis, c.level, -1 if c.occluder_gray is None else c.occluder_gray),
+        )
 
     def by_axis(self) -> dict[str, list[ConditionResult]]:
         """Cells grouped by axis, each list sorted by level, for curve plotting."""

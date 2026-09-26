@@ -52,7 +52,7 @@ def iter_samples(n_sequences: int, seed: int):
         rng = np.random.default_rng(_sequence_seed(seed, index))
         marker_id = int(rng.integers(0, dictionary_size))
         sequence_id = f"seq{index:03d}"
-        clean_image, clean_corners = scene.render(marker_id, rng)
+        clean_image, clean_corners, appearance = scene.render(marker_id, rng)
 
         yield (
             config.Sample(
@@ -62,6 +62,7 @@ def iter_samples(n_sequences: int, seed: int):
                 axis="clean",
                 level=0.0,
                 corners=clean_corners.tolist(),
+                appearance=appearance,
             ),
             clean_image,
         )
@@ -70,23 +71,34 @@ def iter_samples(n_sequences: int, seed: int):
             for level in levels:
                 if level <= 0.0:
                     continue
-                # A fresh generator per cell keeps one axis from consuming random
-                # draws that would shift another axis's choices.
-                cell_rng = np.random.default_rng(_cell_seed(seed, index, axis))
-                image, corners = degrade.apply(
-                    clean_image.copy(), clean_corners.copy(), axis, float(level), cell_rng
-                )
-                yield (
-                    config.Sample(
-                        sample_id=f"{sequence_id}_{axis}_{level:g}",
-                        sequence_id=sequence_id,
-                        marker_id=marker_id,
-                        axis=axis,
-                        level=float(level),
-                        corners=corners.tolist(),
-                    ),
-                    image,
-                )
+                # Occlusion is the one two-dimensional cell: coverage crossed with the tone of the occluding object.
+                tones = config.OCCLUDER_GRAY_LEVELS if axis == "occlusion" else (None,)
+                for gray in tones:
+                    # A fresh generator per cell keeps one axis from consuming random draws that would shift another axis's choices.
+                    # The tones of one cell share it on purpose, so they differ in tone and in nothing else and the comparison between them is paired.
+                    cell_rng = np.random.default_rng(_cell_seed(seed, index, axis))
+                    image, corners = degrade.apply(
+                        clean_image.copy(),
+                        clean_corners.copy(),
+                        axis,
+                        float(level),
+                        cell_rng,
+                        occluder_gray=gray,
+                    )
+                    tone_suffix = "" if gray is None else f"_g{gray}"
+                    yield (
+                        config.Sample(
+                            sample_id=f"{sequence_id}_{axis}_{level:g}{tone_suffix}",
+                            sequence_id=sequence_id,
+                            marker_id=marker_id,
+                            axis=axis,
+                            level=float(level),
+                            corners=corners.tolist(),
+                            appearance=appearance,
+                            occluder_gray=gray,
+                        ),
+                        image,
+                    )
 
 
 def generate(out_dir: Path, n_sequences: int, seed: int) -> Path:

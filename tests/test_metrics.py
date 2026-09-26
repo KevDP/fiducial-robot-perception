@@ -31,6 +31,24 @@ def test_recall_and_wrong_id_are_tracked_separately():
     assert cell.wrong_id_rate == 1 / 3
 
 
+def test_occluder_tones_are_not_pooled_into_one_cell():
+    """Pooling them reports the mean of a tone that survives and one that does not.
+
+    Both of these cells are "occlusion at 0.05". One is a light object and one is
+    a dark one, they recall 100% and 0%, and a single pooled cell would publish
+    50% for a condition where nothing ever measured 50%.
+    """
+    agg = metrics.Aggregator()
+    for _ in range(4):
+        agg.add("occlusion", 0.05, hit=True, wrong_id=False, occluder_gray=210)
+        agg.add("occlusion", 0.05, hit=False, wrong_id=False, occluder_gray=0)
+
+    cells = agg.results()
+    assert len(cells) == 2, "the tones collapsed into one cell"
+    assert {cell.occluder_gray for cell in cells} == {0, 210}
+    assert {cell.recall for cell in cells} == {0.0, 1.0}
+
+
 def test_empty_cell_reports_no_corner_error():
     agg = metrics.Aggregator()
     agg.add("low_light", 0.8, hit=False, wrong_id=False)

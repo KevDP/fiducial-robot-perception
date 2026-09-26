@@ -15,9 +15,6 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-# A person or a carried object in front of a marker reads as a dark, low-texture blob.
-OCCLUDER_GRAY = 55
-
 
 def _bbox(corners: np.ndarray) -> tuple[int, int, int, int]:
     """Axis-aligned bounding box of the marker as (x0, y0, x1, y1)."""
@@ -26,7 +23,7 @@ def _bbox(corners: np.ndarray) -> tuple[int, int, int, int]:
 
 
 def occlude(
-    image: np.ndarray, corners: np.ndarray, level: float, rng: np.random.Generator
+    image: np.ndarray, corners: np.ndarray, level: float, rng: np.random.Generator, gray: int
 ) -> np.ndarray:
     """Cover `level` of the marker area with an opaque object.
 
@@ -38,6 +35,7 @@ def occlude(
         corners: Ground-truth marker corners, shape (4, 2).
         level: Fraction of marker area to cover, in [0, 1).
         rng: Seeded generator, so the edge choice is reproducible.
+        gray: Tone of the occluding object, in [0, 255].
 
     Returns a new BGR image with the occluder generated.
     """
@@ -46,16 +44,16 @@ def occlude(
         return image
     out = image.copy()
     x0, y0, x1, y1 = _bbox(corners)
-    w, h = x1 - x0, y1 - y0
+    depth_x, depth_y = int((x1 - x0) * level), int((y1 - y0) * level)
     side = int(rng.integers(0, 4))
     if side == 0:  # from the left
-        out[y0:y1, x0 : x0 + int(w * level)] = OCCLUDER_GRAY
+        out[:, : max(0, x0 + depth_x)] = gray
     elif side == 1:  # from the right
-        out[y0:y1, x1 - int(w * level) : x1] = OCCLUDER_GRAY
+        out[:, max(0, x1 - depth_x) :] = gray
     elif side == 2:  # from the top
-        out[y0 : y0 + int(h * level), x0:x1] = OCCLUDER_GRAY
+        out[: max(0, y0 + depth_y), :] = gray
     else:  # from the bottom
-        out[y1 - int(h * level) : y1, x0:x1] = OCCLUDER_GRAY
+        out[max(0, y1 - depth_y) :, :] = gray
     return out
 
 
@@ -215,7 +213,13 @@ def viewpoint(
 
 
 def apply(
-    image: np.ndarray, corners: np.ndarray, axis: str, level: float, rng: np.random.Generator
+    image: np.ndarray,
+    corners: np.ndarray,
+    axis: str,
+    level: float,
+    rng: np.random.Generator,
+    *,
+    occluder_gray: int | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Dispatch to one degradation axis.
 
@@ -225,15 +229,21 @@ def apply(
         axis: Axis name, one of the keys of `config.SWEEP`, or "clean".
         level: Level along that axis.
         rng: Seeded generator.
+        occluder_gray: Tone of the occluding object. Required on the occlusion axis and rejected on every other one.
+            Binarization sees a tone rather than an object, so a default here silently picks one object and calls it occlusion.
 
     Returns a tuple of (degraded image, ground-truth corners after the degradation).
 
-    Raises a ValueError if `axis` is not a known degradation axis.
+    Raises a ValueError if `axis` is not a known degradation axis, or if `occluder_gray` does not match the axis.
     """
+    if occluder_gray is not None and axis != "occlusion":
+        raise ValueError(f"occluder_gray is meaningless on the {axis!r} axis")
     if axis == "clean" or level <= 0.0:
         return image, corners
     if axis == "occlusion":
-        return occlude(image, corners, level, rng), corners
+        if occluder_gray is None:
+            raise ValueError("the occlusion axis requires an explicit occluder_gray")
+        return occlude(image, corners, level, rng, occluder_gray), corners
     if axis == "low_light":
         return low_light(image, level, rng), corners
     if axis == "backlight":

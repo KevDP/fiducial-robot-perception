@@ -80,6 +80,46 @@ def test_generation_is_reproducible_across_processes():
     assert outputs[0] == outputs[1], "dataset generation depends on PYTHONHASHSEED"
 
 
+def test_only_the_occlusion_axis_carries_a_tone():
+    """A tone on an axis that occludes nothing would be a label with no referent."""
+    samples = [s for s, _ in dataset.iter_samples(n_sequences=2, seed=0)]
+    for sample in samples:
+        if sample.axis == "occlusion":
+            assert sample.occluder_gray in config.OCCLUDER_GRAY_LEVELS, sample.sample_id
+        else:
+            assert sample.occluder_gray is None, sample.sample_id
+
+
+def test_every_occlusion_level_is_rendered_at_every_tone():
+    """The cell is two-dimensional, so a missing tone is a hole in the table."""
+    samples = [s for s, _ in dataset.iter_samples(n_sequences=2, seed=0)]
+    levels = [level for level in config.OCCLUSION_LEVELS if level > 0.0]
+    for sequence_id in {s.sequence_id for s in samples}:
+        pairs = {
+            (s.level, s.occluder_gray)
+            for s in samples
+            if s.axis == "occlusion" and s.sequence_id == sequence_id
+        }
+        expected = {(level, gray) for level in levels for gray in config.OCCLUDER_GRAY_LEVELS}
+        assert pairs == expected, f"{sequence_id} is missing {expected - pairs}"
+
+
+def test_one_sequence_is_one_printed_sheet():
+    """A sequence is one physical scene, so its samples share one appearance.
+
+    If the appearance were redrawn per sample, the split unit would stop being a
+    scene and the degradation curve inside a sequence would mix printouts.
+    """
+    samples = [s for s, _ in dataset.iter_samples(n_sequences=3, seed=0)]
+    by_sequence: dict[str, set] = {}
+    for sample in samples:
+        by_sequence.setdefault(sample.sequence_id, set()).add(sample.appearance)
+    assert all(len(looks) == 1 for looks in by_sequence.values())
+    assert len({next(iter(looks)) for looks in by_sequence.values()}) > 1, (
+        "every sequence drew the same sheet, so the appearance is still a constant"
+    )
+
+
 def test_cell_seed_is_stable_for_a_known_input():
     """A regression pin: this value must not move when the derivation is touched."""
     assert dataset._cell_seed(0, 0, "occlusion") == dataset._cell_seed(0, 0, "occlusion")

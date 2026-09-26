@@ -47,6 +47,7 @@ def evaluate(data_dir: Path, manifest: dict, keep: set[str]) -> metrics.Aggregat
             hit=match is not None,
             wrong_id=match is None and bool(found),
             corner_error=error,
+            occluder_gray=record.get("occluder_gray"),
         )
     return agg
 
@@ -54,13 +55,19 @@ def evaluate(data_dir: Path, manifest: dict, keep: set[str]) -> metrics.Aggregat
 def print_curves(agg: metrics.Aggregator) -> None:
     """Print one recall curve per degradation axis."""
     for axis, cells in agg.by_axis().items():
+        toned = any(cell.occluder_gray is not None for cell in cells)
+        tone_header = f"  {'tone':>5}" if toned else ""
         print(f"\n{axis}")
-        print(f"  {'level':>8}  {'n':>4}  {'recall':>7}  {'wrong id':>8}  {'corner rmse':>11}")
+        print(
+            f"  {'level':>8}{tone_header}  {'n':>4}  {'recall':>7}  "
+            f"{'wrong id':>8}  {'corner rmse':>11}"
+        )
         for cell in cells:
             rmse = cell.mean_corner_rmse
             rmse_text = f"{rmse:.2f} px" if rmse is not None else "n/a"
+            tone_text = f"  {cell.occluder_gray:>5}" if toned else ""
             print(
-                f"  {cell.level:>8.2f}  {cell.n:>4}  {cell.recall:>6.1%}  "
+                f"  {cell.level:>8.3f}{tone_text}  {cell.n:>4}  {cell.recall:>6.1%}  "
                 f"{cell.wrong_id_rate:>7.1%}  {rmse_text:>11}"
             )
 
