@@ -13,8 +13,7 @@ defining destinations, calibrating, and deciding whether the area to improve is 
 Printed fiducial markers attack that cost directly, solving localization with a printer.
 The catch is that marker detection is not the solved problem it looks like. `cv2.aruco.detectMarkers`
 is a deterministic algorithm with no trained weights, and it works beautifully on a clean,
-frontal, well-lit marker. Real deployments are nothing like that: people stand in front of markers, ambient light is dim and warm, windows blow out one side of the frame, and the robot
-sees markers off-axis.
+frontal, well-lit marker. Real deployments are nothing like that: people stand in front of markers, ambient light is dim and warm, windows blow out one side of the frame, and the robot sees markers off-axis.
 
 So the real question is:
 
@@ -102,7 +101,7 @@ room, and the noise that comes with it is the part that actually needs solving.
 
 ## Limitations
 
-- **The occlusion number came from a generator that with best case marker.** Every marker
+- **The occlusion number came from a generator that drew a best case marker.** Every marker
   was drawn in pure black on pure white with the same border on four sides, and whatever covered
   it stopped at the marker's edge.
 - **A flat curve is ambiguous.** Dim light not breaking anything is consistent with ArUco being robust, and equally
