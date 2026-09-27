@@ -1,6 +1,6 @@
 {
-  "sealed_at": "2026-09-10T21:43:30.399246+00:00",
-  "manifest_fingerprint": "bf9eca696267b0dbe12c64035a0f86a2b098c73bf88df7dd8533f86095e0b249",
+  "sealed_at": "2026-09-26T23:16:34.769515+00:00",
+  "manifest_fingerprint": "2771f91a62cf776c5be6593c63eaf06bb1885a9dfa50968d693210557b330e11",
   "seed": 0,
   "n_train": 45,
   "n_holdout": 15,

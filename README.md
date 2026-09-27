@@ -27,42 +27,65 @@ and this project changes shape and objective.
 
 Classical `cv2.aruco` with default parameters:
 
-| Condition | Recall holds until | Recall at worst level |
-| --- | --- | ---: |
-| Occlusion | 20% of marker area | **0%** (at 40% and above) |
-| Hard shadow edge | edge at 10% across | **4.4%** (edge near the midpoint) |
-| Motion blur | 11 px kernel | **40.0%** (at 15 px) |
-| Low light + sensor noise | never breaks | 100% |
-| Backlight | never breaks | 100% |
-| Warm tint | never breaks | 100% |
-| Off-axis viewpoint | never breaks (60 deg) | 100% |
+| Condition | Recall at the mildest level | Recall at the worst level |
+| --- | ---: | ---: |
+| Occlusion | 72.9% (5% of marker area) | **0%** (20% and above) |
+| Hard shadow edge | 62.2% (edge at 0.1) | **0%** (edge at 0.3 and 0.5) |
+| Motion blur | 100% (3 px kernel) | **51.1%** (15 px) |
+| Backlight | 100% (0.25) | **60.0%** (1.0) |
+| Low light + sensor noise | 100% (0.2) | **75.6%** (0.8) |
+| Warm tint | 100% | 100% |
+| Off-axis viewpoint | 100% | 100% (60 deg) |
 
-These are simulator numbers. The occlusion row does not hold for a printed marker.
-See [Limitations](#limitations).
+The occlusion figure is a mean over the occluding object's tone, which is a condition
+of its own. See finding 1.
+
+These are simulator numbers, measured on the training split. What they describe is a
+generator, so read them with [Limitations](#limitations).
 
 ## Important findings:
 
-**1. Occlusion has a cliff:** Recall is 100% at 20% coverage and 6.7% at 30%.
-With this scale, there is no gradual band to lean on. The cliff sits lower for a printed
-marker, for the reasons under Limitations.
+**1. Under occlusion, the tone of the object counts as much as how much it covers:**
+Recall by coverage and by the tone of the object doing the covering, swept evenly
+across the grey scale:
 
-**2. Shadow difficulty is not monotonic.** Recall by edge position across the marker: 
+| Occluding object | 5% covered | 10% covered | 20% and above |
+| --- | ---: | ---: | ---: |
+| dark | 37.8% | 22.2% | 0% |
+| dark grey | 40.0% | 8.9% | 0% |
+| mid grey | 86.7% | 22.2% | 0% |
+| light grey | 100% | 42.2% | 0% |
+| light | 100% | 31.1% | 0% |
 
-  - 100% at 0.1
-  - 13.3% at 0.3
-  - 4.4% at 0.5
-  - 62.2% at 0.7
-  - 100% at 0.9. 
-  
-A marker lying almost entirely in shadow is recovered fine, one split down the middle is destroyed.
-Adaptive thresholding recalibrates against a uniformly dark region, but a strong gradient breaks binarization on half the modules.
+A light object at 5% costs nothing and a dark one at the same 5% costs sixty points.
+Binarization sees a tone, not an object, so coverage on its own does not predict the
+outcome. By 20% nothing survives at any tone.
 
-**3. Failure is binary, not graded.** Only motion blur produces genuine localization degradation.
-Everywhere else the detector either nails it or reports nothing, which is precisely why a state layer is needed.
-Wrong-id rate was 0.0% in every cell.
+**2. Shadow is the worst axis, and it is not a severity ramp:** Recall by edge position
+across the marker:
 
-**Result:** Global photometric conditions (dim light with sensor noise, backlight, warm tint)  and perspective up to 60 degrees do not move recall at all, so there is no case for building  "general robustness". 
-The targets of the learned layer are partial occlusion and strong local gradients.
+  - 62.2% at 0.1
+  - 0% at 0.3
+  - 0% at 0.5
+  - 4.4% at 0.7
+  - 8.9% at 0.9
+
+The curve turns back up when the marker lies almost entirely in shadow, but only by a few points.
+Adaptive thresholding recalibrates against a uniformly dark region, and a shadowed print has little contrast left to recalibrate against.
+
+**3. Failure is graded:** Where the detector still fires under occlusion or
+shadow it localizes worse first: corner error runs 3 to 8 px against 0.00 px on a clean
+render. Motion blur does the same. So a lost detection is preceded by a degrading one,
+and the state layer has two jobs rather than one: bridging the gap, and filtering the
+measurements on the way into it.
+
+**4. The detector still fails by going quiet:** One cell out of fifty reported a wrong
+id, at 2.2%. Everywhere else a failure is silence, which is the safe failure for a robot.
+
+**Result:** warm tint and perspective up to 60 degrees do not move recall at all, so
+there is no case for building "general robustness".
+The targets of the learned layer are partial occlusion and strong local gradients, the
+two axes that fail hardest and earliest.
 
 ## Architecture
 
@@ -101,15 +124,17 @@ room, and the noise that comes with it is the part that actually needs solving.
 
 ## Limitations
 
-- **The occlusion number came from a generator that drew a best case marker.** Every marker
-  was drawn in pure black on pure white with the same border on four sides, and whatever covered
-  it stopped at the marker's edge.
-- **A flat curve is ambiguous.** Dim light not breaking anything is consistent with ArUco being robust, and equally
-  consistent with the synthetic degradation being too gentle. The two cannot be separated
-  without real footage.
+- **The printed appearance is drawn from chosen ranges** Ink,
+  paper and the page around the marker are randomized per sequence, over ranges wide enough
+  to hold prints that a reader would call plausible. That makes a curve describe behaviour
+  across printouts, but the ranges are a judgement and not a measurement.
+- **A flat curve is ambiguous.** Warm tint and off-axis viewpoint not breaking anything is
+  consistent with ArUco being robust, and equally consistent with the synthetic degradation
+  being too gentle.
+- **One occluder geometry.** The occluding object enters from an edge and covers everything
+  behind it, with a hard edge and casting no shadow of its own on the page.
 - **The degradations are synthetic.** Degradations can only approximate real failure modes. A real occlusion 
-  has texture and a real dim frame has sensor-specific noise. The photometric axes have not been
-  checked against anything real.
+  has texture and a real dim frame has sensor-specific noise.
 - **Backgrounds are not photographic.** In real clutter there are contours that this generator does not reproduce.
 - **One marker per frame.** At least in phase 0, multi-marker scenes are out of scope.
 
