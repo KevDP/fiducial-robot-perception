@@ -124,7 +124,7 @@ room, and the noise that comes with it is the part that actually needs solving.
 
 ## Limitations
 
-- **The printed appearance is drawn from chosen ranges** Ink,
+- **The printed appearance is drawn from chosen ranges.** Ink,
   paper and the page around the marker are randomized per sequence, over ranges wide enough
   to hold prints that a reader would call plausible. That makes a curve describe behaviour
   across printouts, but the ranges are a judgement and not a measurement.
